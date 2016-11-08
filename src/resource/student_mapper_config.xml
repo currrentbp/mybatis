@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bp.test">
+
+	<!-- 普通的增删改查 -->
+	<select id="selectStudent" resultType="student">
+		select * from student where id = #{id}
+	</select>
+	<select id="selectAllStudent" resultType="student">
+		select * from student 
+	</select>
+	
+	<select id="updateStudent" resultType="int" parameterType="student">
+		update student set name=#{name},address=#{address} where id=#{id}
+	</select>
+	
+	<select id="deleteStudent" parameterType="int">
+		delete from student where id = #{id}
+	</select>
+	
+	<select id="addStudent" parameterType="student">
+		insert into student(name,address) 
+		values(#{name},#{address})
+	</select>
+	
+	<!-- 一对一 -->
+	<select id="getClass1" parameterType="int" resultMap="classes">
+		select c.id as c_id,c.name as c_name,t.id as t_id,t.name as t_name 
+		from classes c,teacher t 
+		where c.teacher_id=t.id and c.id=#{id}
+	</select>
+	
+	<resultMap type="com.bp.entity.Classes" id="classes">
+		<id column="c_id" property="id"/>
+		<result column="c_name" property="name"/>
+		<association property="teacher" javaType="com.bp.entity.Teacher">
+			<id column="t_id" property="id"/>
+			<result column="t_name" property="name"/>
+		</association>
+	</resultMap>
+	
+	<!-- 一对多 -->
+	<select id="getStudentAndTeacher" parameterType="int" resultMap="studentTeacher">
+		select s.id as sid,s.name as sname,s.address as saddress,
+				t.id as tid,t.name as tname  
+		from student s,teacher t,stuteach st 
+		where s.id=st.sid and st.tid=t.id 
+			and s.id=#{id}
+	</select>
+	
+	<resultMap type="com.bp.entity.relationship.OneStudentAndManyTeacher" id="studentTeacher">
+		<association property="student" javaType="com.bp.entity.Student">
+			<id column="sid" property="id"/>
+			<result column="sname" property="name"/>
+			<result column="saddress" property="address"/>
+		</association>
+		
+		<collection property="teachers" javaType="ArrayList" ofType="com.bp.entity.Teacher">
+			<id column="tid" property="id"/>
+			<result column="tname" property="name"/>
+		</collection>
+	</resultMap>
+	
+	<!-- 优化查询 -->
+	<select id="getStudentAndTeacher2" parameterType="int" resultMap="studentTeacher2">
+		select s.id as sid,s.name as sname,s.address as saddress,
+				t.id as tid,t.name as tname  
+		from student s,teacher t,stuteach st 
+		where s.id=st.sid and st.tid=t.id 
+			and s.id=#{id}
+	</select>
+	
+	<resultMap type="com.bp.entity.relationship.OneStudentAndManyTeacher" id="studentTeacher2">
+		<association property="student" javaType="com.bp.entity.Student" resultMap="getStudent11"></association>
+		
+		<collection property="teachers" javaType="ArrayList" ofType="com.bp.entity.Teacher" resultMap="getTeacher11"></collection>
+	</resultMap>
+	<!-- 获取学生 -->
+	<resultMap type="com.bp.entity.Student" id="getStudent11">
+		<id column="sid" property="id"/>
+		<result column="sname" property="name"/>
+		<result column="saddress" property="address"/>
+	</resultMap>
+	<!-- 获取老师 -->
+	<resultMap type="com.bp.entity.Teacher" id="getTeacher11">
+		<id column="tid" property="id"/>
+		<result column="tname" property="name"/>
+	</resultMap>
+</mapper>
